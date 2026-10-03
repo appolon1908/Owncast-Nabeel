@@ -1,0 +1,50 @@
+name: Codestra Owncast bridge
+
+on:
+  pull_request:
+    paths:
+      - "runtime/video-stack/**"
+      - ".github/workflows/codestra-owncast-bridge.yml"
+  push:
+    branches:
+      - "feature/video-stack-control-plane"
+    paths:
+      - "runtime/video-stack/**"
+      - ".github/workflows/codestra-owncast-bridge.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  bridge-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile bridges
+        run: |
+          python3 -m py_compile runtime/video-stack/desktop_bridge.py
+          python3 -m py_compile runtime/video-stack/server_connector.py
+      - name: Self tests
+        run: |
+          python3 runtime/video-stack/desktop_bridge.py --self-test
+          python3 runtime/video-stack/server_connector.py --self-test
+      - name: Webhook signature verification
+        run: |
+          python3 - <<'PY'
+          import hashlib, hmac, importlib.util, time
+          from pathlib import Path
+          p=Path("runtime/video-stack/server_connector.py")
+          spec=importlib.util.spec_from_file_location("connector", p)
+          m=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(m)
+          m.WEBHOOK_SECRET="unit-secret"
+          raw=b'{"type":"STREAM_STARTED","eventData":{}}'
+          ts=int(time.time())
+          sig=hmac.new(b"unit-secret",str(ts).encode()+b"."+raw,hashlib.sha256).hexdigest()
+          assert m.verify_owncast_signature(f"t={ts},s={sig}",raw)
+          assert not m.verify_owncast_signature(f"t={ts},s={'0'*64}",raw)
+          assert "STREAM_STARTED" in m.WEBHOOK_EVENTS
+          assert "FEDIVERSE_ENGAGEMENT_FOLLOW" in m.WEBHOOK_EVENTS
+          print("owncast webhook contract ok")
+          PY
