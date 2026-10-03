@@ -69,8 +69,46 @@ paths:
       responses: {"200": {description: Sent}}
   /webhooks/owncast:
     post:
+      servers:
+        - url: http://10.0.0.220:18110
       summary: Signed Owncast webhook receiver on the middleware server
       description: Uses Owncast 0.3.0 owncast-signature HMAC SHA-256 verification with a five-minute replay window.
+      parameters:
+        - in: header
+          name: owncast-signature
+          required: true
+          schema: {type: string}
+          description: "Owncast signature formatted as t=<unix>.s=<hex-hmac-sha256>."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OwncastWebhookEvent"
       responses:
         "202": {description: Accepted}
-        "401": {description: Invalid signature}
+        "400": {description: Unsupported or invalid event}
+        "401": {description: Invalid, missing, expired, or replayed signature}
+        "403": {description: Source host is not allowed}
+
+components:
+  schemas:
+    OwncastWebhookEvent:
+      type: object
+      required: [type, eventData]
+      properties:
+        type:
+          type: string
+          enum:
+            - CHAT
+            - NAME_CHANGE
+            - USER_JOINED
+            - USER_PARTED
+            - STREAM_STARTED
+            - STREAM_STOPPED
+            - STREAM_TITLE_UPDATED
+            - VISIBILITY-UPDATE
+            - FEDIVERSE_ENGAGEMENT_FOLLOW
+        eventData:
+          type: object
+          additionalProperties: true
