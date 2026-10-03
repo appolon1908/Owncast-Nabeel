@@ -39,6 +39,8 @@ def allowed(method:str,path:str)->bool:
     return False
 
 def upstream(method:str,path_and_query:str,body:bytes|None):
+    if not OWNCAST_TOKEN:
+        return 503,"application/json",b'{"error":"owncast_access_token_not_configured"}'
     headers={"Authorization":f"Bearer {OWNCAST_TOKEN}","Accept":"application/json"}
     if body is not None:
         headers["Content-Type"]="application/json"
@@ -85,8 +87,21 @@ class Handler(BaseHTTPRequestHandler):
         p=urlsplit(self.path)
         if not self.check(): return
         if p.path=="/health":
-            st,_,data=upstream("GET","/api/integrations/status",None)
-            self.send_json(200 if st==200 else 503,{"status":"ok" if st==200 else "degraded","service":"codestra-owncast-gateway","owncast_status":st})
+            try:
+                req=Request(BASE+"/api/status",headers={"Accept":"application/json"},method="GET")
+                with urlopen(req,timeout=3) as r:
+                    public_status=r.status
+                    public_body=json.loads(r.read(MAX_BODY) or b"{}")
+            except Exception:
+                public_status=503
+                public_body={}
+            self.send_json(200 if public_status==200 else 503,{
+                "status":"ok" if public_status==200 else "degraded",
+                "service":"codestra-owncast-gateway",
+                "owncast_status":public_status,
+                "owncast_version":public_body.get("versionNumber"),
+                "integration_ready":bool(OWNCAST_TOKEN),
+            })
             return
         if not allowed("GET",p.path):
             self.send_json(404,{"error":"route_not_allowed"}); return
