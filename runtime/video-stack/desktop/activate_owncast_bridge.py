@@ -17,7 +17,7 @@ import sys
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-BASE="http://127.0.0.1:8081"
+BASE="http://127.0.0.1:18080"
 GATEWAY_ENV=Path("/etc/codestra-video/owncast-gateway.env")
 WEBHOOK_URL="http://10.0.0.220:18110/webhooks/owncast"
 NAME="Codestra Video Controller"
@@ -88,7 +88,7 @@ def main():
 
     GATEWAY_ENV.parent.mkdir(parents=True,exist_ok=True)
     GATEWAY_ENV.write_text(
-        "OWNCAST_BASE_URL=http://127.0.0.1:8081\n"
+        "OWNCAST_BASE_URL=http://127.0.0.1:18080\n"
         f"OWNCAST_ACCESS_TOKEN={token}\n"
         "CODESTRA_OWNCAST_ALLOWED_IPS=10.0.0.220,127.0.0.1\n",
         encoding="utf-8",
