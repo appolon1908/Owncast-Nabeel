@@ -1,0 +1,22 @@
+[Unit]
+Description=Codestra Owncast local staging service
+After=network.target
+
+[Service]
+Type=simple
+User=owncast
+Group=owncast
+WorkingDirectory=/opt/owncast
+ExecStart=/opt/owncast/owncast --webserverip 127.0.0.1 --webserverport 18080 --rtmpport 19351 --database /var/lib/owncast/owncast.db --logdir /var/log/owncast
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/owncast /var/log/owncast /opt/owncast
+IPAddressDeny=any
+IPAddressAllow=localhost
+
+[Install]
+WantedBy=multi-user.target
