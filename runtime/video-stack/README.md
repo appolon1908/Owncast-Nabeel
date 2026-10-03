@@ -6,6 +6,7 @@ Current local authority:
 - Owncast web/API: `127.0.0.1:8081`
 - Owncast RTMP: `127.0.0.1:1936`
 - Private Codestra API gateway: `10.0.0.73:18181`, source-restricted to the middleware server
+- Private RTMP relay: `10.0.0.73:19361`, source-restricted to the middleware server and forwarded internally to `127.0.0.1:1936`
 - Signed webhook receiver: `http://10.0.0.220:18110/webhooks/owncast`
 
 ## API coverage
@@ -33,7 +34,7 @@ Every delivery must pass Owncast's `owncast-signature` HMAC-SHA256 verification 
 
 ## Safety
 
-- Desktop Owncast itself stays loopback-only.
+- Desktop Owncast itself stays loopback-only. The only cross-host media ingress is the source-restricted `19361 -> 127.0.0.1:1936` relay.
 - The private gateway accepts only the middleware server IP. An additional bridge bearer token is optional; Owncast's scoped integration token remains mandatory.
 - The webhook listener accepts only the desktop IP and signed Owncast webhook requests.
 - Public streaming/social publishing remains separately gated.
