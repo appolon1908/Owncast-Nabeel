@@ -1,0 +1,31 @@
+name: Owncast video bridge
+
+on:
+  pull_request:
+    paths:
+      - "runtime/video-stack/**"
+      - ".github/workflows/owncast-video-bridge.yml"
+  push:
+    branches:
+      - "feature/video-stack-control-plane"
+    paths:
+      - "runtime/video-stack/**"
+      - ".github/workflows/owncast-video-bridge.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile
+        run: |
+          python3 -m py_compile runtime/video-stack/desktop/owncast_api_gateway.py
+          python3 -m py_compile runtime/video-stack/server/owncast_webhook_receiver.py
+      - name: Self-tests
+        run: |
+          python3 runtime/video-stack/desktop/owncast_api_gateway.py --self-test
+          python3 runtime/video-stack/server/owncast_webhook_receiver.py --self-test
