@@ -1,114 +1,73 @@
 openapi: 3.0.3
 info:
-  title: Codestra Owncast Bridge
+  title: Codestra Owncast Connector
   version: 1.0.0
-  description: Private desktop bridge for Owncast 0.3.0 integration APIs and signed webhook ingestion.
+  description: Normalized API for the canonical Owncast runtime on codestra-desktop.
 servers:
-  - url: http://10.0.0.73:18181
+  - url: http://127.0.0.1:18104
 paths:
   /health:
     get:
-      summary: Bridge and Owncast integration health
       responses:
-        "200": {description: Healthy}
-  /api/integrations/status:
+        "200": {description: Desktop bridge and Owncast health}
+  /v1/status:
     get:
-      summary: Get server status
-      responses: {"200": {description: Status}}
-  /api/integrations/chat:
-    get:
-      summary: Get chat history
-      responses: {"200": {description: Chat history}}
-  /api/integrations/clients:
-    get:
-      summary: Get connected clients
-      responses: {"200": {description: Clients}}
-  /api/integrations/moderation/chat/user/{userId}:
-    get:
-      summary: Get chat user details
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema: {type: string}
-      responses: {"200": {description: User}}
-  /api/integrations/streamtitle:
-    post:
-      summary: Set stream title
-      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
-      responses: {"200": {description: Updated}}
-  /api/integrations/chat/system:
-    post:
-      summary: Send system chat message
-      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
-      responses: {"200": {description: Sent}}
-  /api/integrations/chat/send:
-    post:
-      summary: Send standard chat message
-      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
-      responses: {"200": {description: Sent}}
-  /api/integrations/chat/action:
-    post:
-      summary: Send chat action
-      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
-      responses: {"200": {description: Sent}}
-  /api/integrations/chat/messagevisibility:
-    post:
-      summary: Change chat message visibility
-      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
-      responses: {"200": {description: Updated}}
-  /api/integrations/chat/system/client/{clientId}:
-    post:
-      summary: Send system message to one client
-      parameters:
-        - in: path
-          name: clientId
-          required: true
-          schema: {type: integer}
-      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
-      responses: {"200": {description: Sent}}
-  /webhooks/owncast:
-    post:
-      servers:
-        - url: http://10.0.0.220:18110
-      summary: Signed Owncast webhook receiver on the middleware server
-      description: Uses Owncast 0.3.0 owncast-signature HMAC SHA-256 verification with a five-minute replay window.
-      parameters:
-        - in: header
-          name: owncast-signature
-          required: true
-          schema: {type: string}
-          description: "Owncast signature formatted as t=<unix>.s=<hex-hmac-sha256>."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/OwncastWebhookEvent"
       responses:
-        "202": {description: Accepted}
-        "400": {description: Unsupported or invalid event}
-        "401": {description: Invalid, missing, expired, or replayed signature}
-        "403": {description: Source host is not allowed}
-
-components:
-  schemas:
-    OwncastWebhookEvent:
-      type: object
-      required: [type, eventData]
-      properties:
-        type:
-          type: string
-          enum:
-            - CHAT
-            - NAME_CHANGE
-            - USER_JOINED
-            - USER_PARTED
-            - STREAM_STARTED
-            - STREAM_STOPPED
-            - STREAM_TITLE_UPDATED
-            - VISIBILITY-UPDATE
-            - FEDIVERSE_ENGAGEMENT_FOLLOW
-        eventData:
-          type: object
-          additionalProperties: true
+        "200": {description: Owncast server status}
+  /v1/chat:
+    get:
+      responses:
+        "200": {description: Chat history}
+  /v1/clients:
+    get:
+      responses:
+        "200": {description: Connected chat clients}
+  /v1/users/{userId}:
+    get:
+      parameters:
+        - {in: path, name: userId, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Owncast chat user details}
+  /v1/chat/system:
+    post:
+      responses:
+        "200": {description: System chat message sent}
+        "423": {description: Mutations disabled}
+  /v1/chat/send:
+    post:
+      responses:
+        "200": {description: Standard chat message sent}
+        "423": {description: Mutations disabled}
+  /v1/chat/action:
+    post:
+      responses:
+        "200": {description: Chat action sent}
+        "423": {description: Mutations disabled}
+  /v1/chat/messagevisibility:
+    post:
+      responses:
+        "200": {description: Message visibility changed}
+        "423": {description: Mutations disabled}
+  /v1/stream/title:
+    post:
+      responses:
+        "200": {description: Stream title updated}
+        "423": {description: Mutations disabled}
+  /v1/chat/system/client/{clientId}:
+    post:
+      parameters:
+        - {in: path, name: clientId, required: true, schema: {type: string}}
+      responses:
+        "200": {description: System message sent to one client}
+        "423": {description: Mutations disabled}
+  /v1/webhooks/recent:
+    get:
+      responses:
+        "200": {description: Recently verified webhook events}
+  /v1/webhooks/owncast:
+    post:
+      description: LAN ingress used by the canonical desktop Owncast instance. Validates owncast-signature and a 5-minute replay window.
+      responses:
+        "202": {description: Signed event accepted}
+        "401": {description: Invalid signature}
+        "422": {description: Unsupported event}
