@@ -25,6 +25,7 @@ jobs:
         run: |
           python3 -m py_compile runtime/video-stack/desktop/owncast_api_gateway.py
           python3 -m py_compile runtime/video-stack/server/owncast_webhook_receiver.py
+          python3 -m py_compile runtime/video-stack/desktop/activate_owncast_bridge.py
       - name: Self-tests
         run: |
           python3 runtime/video-stack/desktop/owncast_api_gateway.py --self-test
