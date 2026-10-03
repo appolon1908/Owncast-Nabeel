@@ -12,7 +12,7 @@ from urllib.request import Request, urlopen
 
 BASE=os.environ.get("OWNCAST_BASE_URL","http://127.0.0.1:18080").rstrip("/")
 OWNCAST_TOKEN=os.environ.get("OWNCAST_ACCESS_TOKEN","")
-BRIDGE_TOKEN=os.environ.get("CODESTRA_OWNCAST_BRIDGE_TOKEN","")  # optional; source-IP restriction is mandatory
+BRIDGE_TOKEN=os.environ.get("CODESTRA_OWNCAST_BRIDGE_TOKEN","")
 ALLOWED_IPS={x.strip() for x in os.environ.get("CODESTRA_OWNCAST_ALLOWED_IPS","10.0.0.220,127.0.0.1").split(",") if x.strip()}
 MAX_BODY=1024*1024
 
@@ -61,7 +61,7 @@ class Handler(BaseHTTPRequestHandler):
         return self.client_address[0] in ALLOWED_IPS
 
     def auth_ok(self):
-        return (not BRIDGE_TOKEN) or self.headers.get("Authorization","")==f"Bearer {BRIDGE_TOKEN}"
+        return bool(BRIDGE_TOKEN) and self.headers.get("Authorization","")==f"Bearer {BRIDGE_TOKEN}"
 
     def send_bytes(self,status,ctype,data):
         self.send_response(status)
@@ -142,7 +142,7 @@ def main():
         assert not allowed("POST","/api/admin/accesstokens/create")
         print(json.dumps({"ok":True,"service":"codestra-owncast-gateway"}))
         return
-    ThreadingHTTPServer((a.host,a.port),Handler).serve_forever()
+    if not BRIDGE_TOKEN:\n        raise SystemExit("CODESTRA_OWNCAST_BRIDGE_TOKEN_required")\n    ThreadingHTTPServer((a.host,a.port),Handler).serve_forever()
 
 if __name__=="__main__":
     main()
