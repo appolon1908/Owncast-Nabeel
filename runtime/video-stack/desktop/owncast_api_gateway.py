@@ -10,7 +10,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
-BASE=os.environ.get("OWNCAST_BASE_URL","http://127.0.0.1:8081").rstrip("/")
+BASE=os.environ.get("OWNCAST_BASE_URL","http://127.0.0.1:18080").rstrip("/")
 OWNCAST_TOKEN=os.environ.get("OWNCAST_ACCESS_TOKEN","")
 BRIDGE_TOKEN=os.environ.get("CODESTRA_OWNCAST_BRIDGE_TOKEN","")  # optional; source-IP restriction is mandatory
 ALLOWED_IPS={x.strip() for x in os.environ.get("CODESTRA_OWNCAST_ALLOWED_IPS","10.0.0.220,127.0.0.1").split(",") if x.strip()}
