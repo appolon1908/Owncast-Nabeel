@@ -19,12 +19,20 @@ After the bridge files are installed, run this interactively on `codestra-deskto
 sudo /opt/codestra-video/owncast-gateway/activate_owncast_bridge.py
 ```
 
-It prompts without echo for the Owncast admin password and the webhook secret from the middleware host. It then uses only Owncast's supported admin API to create/reuse the scoped access token, registers all webhook events, writes the protected gateway environment file, restarts the gateway, and validates the integration. It never prints the credentials.
+It prompts without echo for the Owncast admin password, the webhook secret from the middleware host, and the Codestra Owncast bridge token. It then uses only Owncast's supported admin API to create/reuse the scoped access token, registers all webhook events, writes the protected gateway environment file, restarts the gateway, and validates the integration. It never prints the credentials.
 
-To obtain the already-generated webhook secret locally on the middleware host:
+The middleware host stores two generated secrets locally: the Owncast webhook secret and the private desktop-bridge bearer token. Do not copy either into Git or chat. An authorized operator can read them locally only during activation.
+
+Webhook secret:
 
 ```bash
 sudo sed -n 's/^OWNCAST_WEBHOOK_SECRET=//p' /etc/codestra-video/owncast-webhook.env
+```
+
+Bridge token:
+
+```bash
+sudo cat /etc/codestra-video/.owncast-bridge-token
 ```
 
 ## 1. Create the supported Owncast integration token
@@ -53,7 +61,7 @@ The file must contain:
 ```text
 OWNCAST_BASE_URL=http://127.0.0.1:18080
 OWNCAST_ACCESS_TOKEN=<OWNCAST ACCESS TOKEN>
-CODESTRA_OWNCAST_ALLOWED_IPS=10.0.0.220,127.0.0.1
+CODESTRA_OWNCAST_BRIDGE_TOKEN=<CODESRA BRIDGE TOKEN>\nCODESTRA_OWNCAST_ALLOWED_IPS=10.0.0.220,127.0.0.1
 ```
 
 Then:
