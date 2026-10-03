@@ -142,8 +142,6 @@ def main():
         assert not allowed("POST","/api/admin/accesstokens/create")
         print(json.dumps({"ok":True,"service":"codestra-owncast-gateway"}))
         return
-    if not OWNCAST_TOKEN or not BRIDGE_TOKEN:
-        raise SystemExit("required_credentials_missing")
     ThreadingHTTPServer((a.host,a.port),Handler).serve_forever()
 
 if __name__=="__main__":
