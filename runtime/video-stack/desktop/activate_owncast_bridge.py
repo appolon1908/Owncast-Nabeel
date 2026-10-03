@@ -56,7 +56,8 @@ def main():
         raise SystemExit("run this activation helper with sudo")
     password=getpass.getpass("Owncast admin password: ")
     webhook_secret=getpass.getpass("Codestra webhook secret from middleware server: ")
-    if not password or not webhook_secret:
+    bridge_token=getpass.getpass("Codestra Owncast bridge token from middleware server: ")
+    if not password or not webhook_secret or not bridge_token:
         raise SystemExit("credentials must not be empty")
 
     _,tokens=request("/api/admin/accesstokens",password)
@@ -90,6 +91,7 @@ def main():
     GATEWAY_ENV.write_text(
         "OWNCAST_BASE_URL=http://127.0.0.1:18080\n"
         f"OWNCAST_ACCESS_TOKEN={token}\n"
+        f"CODESTRA_OWNCAST_BRIDGE_TOKEN={bridge_token}\n"
         "CODESTRA_OWNCAST_ALLOWED_IPS=10.0.0.220,127.0.0.1\n",
         encoding="utf-8",
     )
