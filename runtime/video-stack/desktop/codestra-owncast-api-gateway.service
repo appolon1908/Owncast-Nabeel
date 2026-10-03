@@ -1,0 +1,23 @@
+[Unit]
+Description=Codestra private Owncast API gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=codestra
+Group=codestra
+EnvironmentFile=/etc/codestra-video/owncast-gateway.env
+ExecStart=/usr/bin/python3 /opt/codestra-video/owncast-gateway/gateway.py --host 10.0.0.73 --port 18181
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+IPAddressDeny=any
+IPAddressAllow=127.0.0.0/8
+IPAddressAllow=10.0.0.220/32
+
+[Install]
+WantedBy=multi-user.target
