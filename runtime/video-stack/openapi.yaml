@@ -1,0 +1,76 @@
+openapi: 3.0.3
+info:
+  title: Codestra Owncast Bridge
+  version: 1.0.0
+  description: Private desktop bridge for Owncast 0.3.0 integration APIs and signed webhook ingestion.
+servers:
+  - url: http://10.0.0.73:18181
+paths:
+  /health:
+    get:
+      summary: Bridge and Owncast integration health
+      responses:
+        "200": {description: Healthy}
+  /api/integrations/status:
+    get:
+      summary: Get server status
+      responses: {"200": {description: Status}}
+  /api/integrations/chat:
+    get:
+      summary: Get chat history
+      responses: {"200": {description: Chat history}}
+  /api/integrations/clients:
+    get:
+      summary: Get connected clients
+      responses: {"200": {description: Clients}}
+  /api/integrations/moderation/chat/user/{userId}:
+    get:
+      summary: Get chat user details
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: {type: string}
+      responses: {"200": {description: User}}
+  /api/integrations/streamtitle:
+    post:
+      summary: Set stream title
+      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
+      responses: {"200": {description: Updated}}
+  /api/integrations/chat/system:
+    post:
+      summary: Send system chat message
+      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
+      responses: {"200": {description: Sent}}
+  /api/integrations/chat/send:
+    post:
+      summary: Send standard chat message
+      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
+      responses: {"200": {description: Sent}}
+  /api/integrations/chat/action:
+    post:
+      summary: Send chat action
+      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
+      responses: {"200": {description: Sent}}
+  /api/integrations/chat/messagevisibility:
+    post:
+      summary: Change chat message visibility
+      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
+      responses: {"200": {description: Updated}}
+  /api/integrations/chat/system/client/{clientId}:
+    post:
+      summary: Send system message to one client
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema: {type: integer}
+      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
+      responses: {"200": {description: Sent}}
+  /webhooks/owncast:
+    post:
+      summary: Signed Owncast webhook receiver on the middleware server
+      description: Uses Owncast 0.3.0 owncast-signature HMAC SHA-256 verification with a five-minute replay window.
+      responses:
+        "202": {description: Accepted}
+        "401": {description: Invalid signature}
