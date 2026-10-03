@@ -11,6 +11,22 @@ The canonical Owncast runtime stays on `codestra-desktop`.
 
 Owncast itself remains loopback-only. Only the narrow Codestra gateway is reachable from the middleware host, and its systemd IP policy only allows `10.0.0.220/32`.
 
+## Recommended activation helper
+
+After the bridge files are installed, run this interactively on `codestra-desktop`:
+
+```bash
+sudo /opt/codestra-video/owncast-gateway/activate_owncast_bridge.py
+```
+
+It prompts without echo for the Owncast admin password and the webhook secret from the middleware host. It then uses only Owncast's supported admin API to create/reuse the scoped access token, registers all webhook events, writes the protected gateway environment file, restarts the gateway, and validates the integration. It never prints the credentials.
+
+To obtain the already-generated webhook secret locally on the middleware host:
+
+```bash
+sudo sed -n 's/^OWNCAST_WEBHOOK_SECRET=//p' /etc/codestra-video/owncast-webhook.env
+```
+
 ## 1. Create the supported Owncast integration token
 
 On `codestra-desktop`, open:
