@@ -1,0 +1,25 @@
+[Unit]
+Description=Codestra signed Owncast webhook receiver
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=videoctl
+Group=videoctl
+EnvironmentFile=/etc/codestra-video/owncast-webhook.env
+EnvironmentFile=/etc/codestra-video/controller.env
+ExecStart=/usr/bin/python3 /opt/codestra-video/owncast-webhook/receiver.py --host 10.0.0.220 --port 18110
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/srv/codestra-video/events
+IPAddressDeny=any
+IPAddressAllow=127.0.0.0/8
+IPAddressAllow=10.0.0.73/32
+
+[Install]
+WantedBy=multi-user.target
