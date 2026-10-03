@@ -1,0 +1,22 @@
+[Unit]
+Description=Codestra private RTMP relay to canonical desktop Owncast
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=codestra
+Group=codestra
+ExecStart=/usr/bin/socat TCP-LISTEN:19361,bind=10.0.0.73,reuseaddr,fork TCP:127.0.0.1:1936
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+IPAddressDeny=any
+IPAddressAllow=127.0.0.0/8
+IPAddressAllow=10.0.0.220/32
+
+[Install]
+WantedBy=multi-user.target
