@@ -12,7 +12,7 @@ from urllib.request import Request, urlopen
 
 BASE=os.environ.get("OWNCAST_BASE_URL","http://127.0.0.1:8081").rstrip("/")
 OWNCAST_TOKEN=os.environ.get("OWNCAST_ACCESS_TOKEN","")
-BRIDGE_TOKEN=os.environ.get("CODESTRA_OWNCAST_BRIDGE_TOKEN","")
+BRIDGE_TOKEN=os.environ.get("CODESTRA_OWNCAST_BRIDGE_TOKEN","")  # optional; source-IP restriction is mandatory
 ALLOWED_IPS={x.strip() for x in os.environ.get("CODESTRA_OWNCAST_ALLOWED_IPS","10.0.0.220,127.0.0.1").split(",") if x.strip()}
 MAX_BODY=1024*1024
 
@@ -59,7 +59,7 @@ class Handler(BaseHTTPRequestHandler):
         return self.client_address[0] in ALLOWED_IPS
 
     def auth_ok(self):
-        return bool(BRIDGE_TOKEN) and self.headers.get("Authorization","")==f"Bearer {BRIDGE_TOKEN}"
+        return (not BRIDGE_TOKEN) or self.headers.get("Authorization","")==f"Bearer {BRIDGE_TOKEN}"
 
     def send_bytes(self,status,ctype,data):
         self.send_response(status)
