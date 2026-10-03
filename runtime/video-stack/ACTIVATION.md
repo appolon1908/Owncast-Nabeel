@@ -151,3 +151,23 @@ curl -fsS http://10.0.0.220:18110/health
 ```
 
 The desktop Owncast ports `8081` and `1936` must remain unavailable from the LAN. The old middleware-host Owncast ports `18080` and `19351` must remain unused.
+
+## 6. Private media transport
+
+Owncast's HTTP API does not carry the video stream itself. The canonical media path is:
+
+```text
+middleware / MediaMTX / FFmpeg
+        -> 10.0.0.73:19361
+        -> source-restricted desktop socat relay
+        -> 127.0.0.1:1936
+        -> canonical Owncast
+```
+
+The real Owncast RTMP listener remains loopback-only. Only `10.0.0.220/32` is allowed to reach the private relay.
+
+The MediaMTX destination is `owncast-desktop` and remains disabled by default. Its stream key is supplied only through the environment variable:
+
+`NABEEL_OWNCAST_STREAM_KEY`
+
+Store that value on the middleware host in a protected runtime environment file; never commit it to Git. Enabling the destination remains a separate staging/production-effect decision.
