@@ -1,0 +1,66 @@
+name: Owncast desktop bridge install
+
+on:
+  push:
+    branches:
+      - "feature/video-stack-control-plane"
+    paths:
+      - "runtime/video-stack/desktop/**"
+      - ".github/workflows/owncast-desktop-install.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  install-desktop-bridge:
+    runs-on: [self-hosted, Linux, X64, codestra-ci, nabeel-ci]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+
+      - name: Verify exact checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain)"
+
+      - name: Install canonical desktop bridge files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile runtime/video-stack/desktop/owncast_api_gateway.py
+          python3 -m py_compile runtime/video-stack/desktop/activate_owncast_bridge.py
+          python3 runtime/video-stack/desktop/owncast_api_gateway.py --self-test
+
+          sudo install -d -o root -g codestra -m 0750 /opt/codestra-video/owncast-gateway
+          sudo install -m 0755 runtime/video-stack/desktop/owncast_api_gateway.py /opt/codestra-video/owncast-gateway/gateway.py
+          sudo install -m 0755 runtime/video-stack/desktop/activate_owncast_bridge.py /opt/codestra-video/owncast-gateway/activate_owncast_bridge.py
+          sudo install -m 0644 runtime/video-stack/desktop/codestra-owncast-api-gateway.service /etc/systemd/system/codestra-owncast-api-gateway.service
+
+          sudo install -d -o root -g codestra -m 0750 /etc/codestra-video
+          if ! sudo test -f /etc/codestra-video/owncast-gateway.env; then
+            printf "%s\n" \
+              "OWNCAST_BASE_URL=http://127.0.0.1:18080" \
+              "CODESTRA_OWNCAST_ALLOWED_IPS=10.0.0.220,127.0.0.1" |
+              sudo tee /etc/codestra-video/owncast-gateway.env >/dev/null
+            sudo chown root:codestra /etc/codestra-video/owncast-gateway.env
+            sudo chmod 0640 /etc/codestra-video/owncast-gateway.env
+          fi
+
+          sudo systemctl daemon-reload
+          echo "Bridge files installed. Activation remains fail-closed until the governed access token and bridge token are provisioned."
+
+      - name: Recover SentinelX management channel if installed
+        shell: bash
+        run: |
+          set -euo pipefail
+          units="$(systemctl list-unit-files --type=service --no-legend | awk 'tolower($1) ~ /sentinelx/ {print $1}')"
+          if [ -n "$units" ]; then
+            while IFS= read -r unit; do
+              [ -n "$unit" ] && sudo systemctl restart "$unit" || true
+            done <<< "$units"
+          fi
