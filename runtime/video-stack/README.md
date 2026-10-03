@@ -1,56 +1,74 @@
 # Codestra Owncast canonical desktop bridge
 
-The canonical Owncast runtime lives on **codestra-desktop** at `127.0.0.1:18080`.
-There must not be a second authoritative Owncast runtime on the middleware server.
+The **only** authoritative Owncast runtime is the existing instance on
+`codestra-desktop`. The middleware server must not host a second Owncast.
 
-## Topology
+## Canonical topology
 
 ```
-Middleware / Video Controller
-  -> server connector 127.0.0.1:18104
-  -> authenticated LAN bridge 10.0.0.73:18180
-  -> Owncast 127.0.0.1:18080
+Codestra Video Controller 127.0.0.1:18100
+        |
+        | Owncast integration API
+        v
+Desktop API gateway 10.0.0.73:18181
+        |
+        v
+Owncast 127.0.0.1:18080
 
 Owncast signed webhooks
-  -> http://10.0.0.220:18184/v1/webhooks/owncast
-  -> signature validation + replay window
-  -> /srv/codestra-video/events/owncast.jsonl
+        |
+        v
+http://10.0.0.220:18110/webhooks/owncast
+        |
+        v
+verified event journal + controller readback
 ```
 
-The desktop bridge accepts only `10.0.0.220` plus loopback and requires
-`CODESTRA_OWNCAST_BRIDGE_TOKEN`. The server webhook receiver accepts only
-`10.0.0.73`, validates Owncast v0.3.0 `owncast-signature` HMAC-SHA256,
-and rejects timestamps outside five minutes.
+The API gateway is restricted to the middleware server IP
+`10.0.0.220/32`. Owncast itself remains loopback-only.
 
-## Normalized API
+## Owncast API endpoints exposed through the private gateway
 
-Read endpoints:
+### GET
 
-- `GET /health`
-- `GET /v1/status`
-- `GET /v1/chat`
-- `GET /v1/clients`
-- `GET /v1/users/{userId}`
-- `GET /v1/webhooks/recent`
+- `/api/integrations/status`
+- `/api/integrations/chat`
+- `/api/integrations/clients`
+- `/api/integrations/moderation/chat/user/{userId}`
 
-Mutation endpoints (default-disabled on the desktop bridge):
+### POST
 
-- `POST /v1/chat/system`
-- `POST /v1/chat/send`
-- `POST /v1/chat/action`
-- `POST /v1/chat/messagevisibility`
-- `POST /v1/stream/title`
-- `POST /v1/chat/system/client/{clientId}`
+- `/api/integrations/streamtitle`
+- `/api/integrations/chat/system`
+- `/api/integrations/chat/send`
+- `/api/integrations/chat/action`
+- `/api/integrations/chat/messagevisibility`
+- `/api/integrations/chat/system/client/{clientId}`
 
-Native Owncast scopes remain authoritative:
+No `/api/admin/*` endpoint is proxied.
 
-- `CAN_SEND_MESSAGES`
-- `CAN_SEND_SYSTEM_MESSAGES`
-- `HAS_ADMIN_ACCESS`
+## Codestra Video Controller endpoints
+
+### GET
+
+- `/v1/owncast/status`
+- `/v1/owncast/chat`
+- `/v1/owncast/clients`
+- `/v1/owncast/users/{userId}`
+- `/v1/owncast/webhook-events?limit=25`
+
+### POST
+
+- `/v1/owncast/stream-title`
+- `/v1/owncast/chat/system`
+- `/v1/owncast/chat/send`
+- `/v1/owncast/chat/action`
+- `/v1/owncast/chat/message-visibility`
+- `/v1/owncast/chat/system/client/{clientId}`
 
 ## Webhook events
 
-The receiver supports all documented Owncast webhook event types:
+All Owncast 0.3.0 documented webhook event types are accepted:
 
 - `CHAT`
 - `NAME_CHANGE`
@@ -62,6 +80,7 @@ The receiver supports all documented Owncast webhook event types:
 - `VISIBILITY-UPDATE`
 - `FEDIVERSE_ENGAGEMENT_FOLLOW`
 
-No token or webhook secret is committed. Create the Owncast Access Token and
-webhook secret in the Owncast admin integration screens, then place them in
-the root-readable environment files on their respective hosts.
+The receiver validates `owncast-signature` using HMAC-SHA256 over the exact raw
+body and rejects timestamps outside the documented five-minute replay window.
+
+See `ACTIVATION.md` for installation and supported Owncast admin-API activation.
