@@ -34,7 +34,7 @@ Every delivery must pass Owncast's `owncast-signature` HMAC-SHA256 verification 
 ## Safety
 
 - Desktop Owncast itself stays loopback-only.
-- The private gateway accepts only the middleware server IP and a separate bridge bearer token.
+- The private gateway accepts only the middleware server IP. An additional bridge bearer token is optional; Owncast's scoped integration token remains mandatory.
 - The webhook listener accepts only the desktop IP and signed Owncast webhook requests.
 - Public streaming/social publishing remains separately gated.
 - Middleware V3 remains the durable cross-system command, idempotency, audit, and reconciliation authority.
