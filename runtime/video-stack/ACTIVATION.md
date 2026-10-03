@@ -1,10 +1,10 @@
 # Owncast video-stack activation
 
-The canonical Owncast runtime stays on `codestra-desktop`.
+The canonical Owncast runtime stays on `codestra-desktop`. The middleware server duplicate was removed on 2026-10-03; do not recreate it.
 
 ## Runtime addresses
 
-- Owncast web/API: `http://127.0.0.1:8081`
+- Owncast web/API: `http://127.0.0.1:18080`
 - Owncast RTMP ingest: `rtmp://127.0.0.1:1936/live/<stream-key>`
 - Codestra private gateway: `http://10.0.0.73:18181`
 - Middleware signed webhook receiver: `http://10.0.0.220:18110/webhooks/owncast`
@@ -31,7 +31,7 @@ sudo sed -n 's/^OWNCAST_WEBHOOK_SECRET=//p' /etc/codestra-video/owncast-webhook.
 
 On `codestra-desktop`, open:
 
-`http://127.0.0.1:8081/admin/access-tokens`
+`http://127.0.0.1:18080/admin/access-tokens`
 
 Create an access token named **Codestra Video Controller** with:
 
@@ -51,7 +51,7 @@ sudoedit /etc/codestra-video/owncast-gateway.env
 The file must contain:
 
 ```text
-OWNCAST_BASE_URL=http://127.0.0.1:8081
+OWNCAST_BASE_URL=http://127.0.0.1:18080
 OWNCAST_ACCESS_TOKEN=<OWNCAST ACCESS TOKEN>
 CODESTRA_OWNCAST_ALLOWED_IPS=10.0.0.220,127.0.0.1
 ```
@@ -68,7 +68,7 @@ sudo systemctl enable --now codestra-owncast-api-gateway.service
 
 On `codestra-desktop`, open:
 
-`http://127.0.0.1:8081/admin/webhooks`
+`http://127.0.0.1:18080/admin/webhooks`
 
 Create a webhook with URL:
 
@@ -164,7 +164,7 @@ middleware / MediaMTX / FFmpeg
         -> canonical Owncast
 ```
 
-The real Owncast RTMP listener remains loopback-only. Only `10.0.0.220/32` is allowed to reach the private relay.
+The real Owncast RTMP listener remains loopback-only. Only `10.0.0.220/32` may reach a private relay. The relay must not be enabled until the desktop's actual loopback RTMP port is re-read after the current desktop reconnect; the previously drafted `1936` target is not treated as certified runtime truth.
 
 The MediaMTX destination is `owncast-desktop` and remains disabled by default. Its stream key is supplied only through the environment variable:
 
