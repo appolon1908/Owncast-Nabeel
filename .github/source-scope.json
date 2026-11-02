@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "repository": "appolon1908/Owncast-Nabeel",
+  "scope": "documentation-contract-only",
+  "application_source_allowed": false,
+  "baseline_files": [
+    ".codestra/MIDDLEWARE-INTEGRATION-CONTRACT.md",
+    ".github/workflows/nabeel-integration-ci.yml",
+    "AGENTS.md",
+    "docs/ARCHITECTURE-CHARTS.md",
+    "docs/NABEEL_GOVERNANCE.md"
+  ],
+  "authority_hashes": {
+    ".codestra/MIDDLEWARE-INTEGRATION-CONTRACT.md": "5f4b2ff642f37a909fcd3300cc17096a4fa00b0af6f95689b3a5371fabc0db3a",
+    ".github/workflows/nabeel-integration-ci.yml": "2cb46e9c44bacd8a1f27b631d8974d7c6b5916525b942aef37bdee99afc8b85d",
+    "AGENTS.md": "9461f1ebfc5bb1cb04de6dbf92445f23c2e2038537bc6b0f1ecc07ee22f69a64",
+    "docs/NABEEL_GOVERNANCE.md": "80948e63cbdc6d389129a466723d7eb280169f30e376272279f973645aedb714"
+  },
+  "required_text": {},
+  "structured_files": {
+    ".github/workflows/nabeel-integration-ci.yml": {
+      "name": "NABEEL integration CI",
+      "on": {
+        "pull_request": {
+          "branches": [
+            "main"
+          ]
+        },
+        "push": {
+          "branches": [
+            "pr/nabeel-*"
+          ]
+        }
+      },
+      "permissions": {
+        "contents": "read"
+      },
+      "jobs": {
+        "nabeel-integration": {
+          "name": "nabeel-integration",
+          "runs-on": [
+            "self-hosted",
+            "Linux",
+            "X64",
+            "codestra-ci",
+            "nabeel-ci"
+          ],
+          "timeout-minutes": 10,
+          "steps": [
+            {
+              "name": "Checkout exact source",
+              "uses": "actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
+              "with": {
+                "persist-credentials": false
+              }
+            },
+            {
+              "name": "Validate",
+              "shell": "bash",
+              "run": "set -euo pipefail\ntest \"$(git rev-parse HEAD)\" = \"${GITHUB_SHA}\"\ntest -z \"$(git status --porcelain)\"\ntest -s docs/NABEEL_GOVERNANCE.md\ngrep -Fq \"https://github.com/ingtrader21-spec/Owncast-Nabeel.git\" docs/NABEEL_GOVERNANCE.md\ngrep -Fq \"https://github.com/owncast/owncast.git\" docs/NABEEL_GOVERNANCE.md\n"
+            }
+          ]
+        }
+      }
+    },
+    "governance/interim-release-policy.json": {
+      "schema_version": 1,
+      "policy_kind": "source_merge",
+      "repository": "appolon1908/Owncast-Nabeel",
+      "authorization_date": "2026-11-02",
+      "required_checks": [
+        {
+          "context": "documentation-contract-source",
+          "integration_id": 15368,
+          "workflow": ".github/workflows/source-scope.yml"
+        }
+      ],
+      "replaces_contexts": [
+        "codestra-control-plane",
+        "codestra/control-plane"
+      ],
+      "preserve": [
+        "other_required_checks",
+        "review_requirements",
+        "ref_conditions",
+        "bypass_actors",
+        "enforcement",
+        "force_push_protection",
+        "deletion_protection",
+        "deployment_authority"
+      ],
+      "production_activation_authorized": false,
+      "note": "GitHub rulesets remain the enforcement authority. Documentation/contract-only validation denies application sources until vetted product CI is separately reviewed; it does not certify runtime or authorize deployment."
+    }
+  }
+}
