@@ -1,0 +1,16 @@
+services:
+  owncast:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:1935:1935"
+    volumes:
+      - nabeel-owncast-data:/app/data
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  nabeel-owncast-data:
