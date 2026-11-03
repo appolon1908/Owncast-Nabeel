@@ -1,0 +1,116 @@
+openapi: 3.0.3
+info:
+  title: Codestra Video Controller - Owncast API
+  version: 1.1.0
+  description: Normalized middleware-local Owncast control and webhook readback surface.
+servers:
+  - url: http://127.0.0.1:18100
+security:
+  - CodestraVideoToken: []
+paths:
+  /v1/owncast/status:
+    get:
+      summary: Read canonical desktop Owncast status
+      responses:
+        "200": {description: Owncast status}
+        "503": {description: Desktop integration gateway is not ready}
+  /v1/owncast/chat:
+    get:
+      summary: Read chat history
+      responses:
+        "200": {description: Chat history}
+  /v1/owncast/clients:
+    get:
+      summary: Read connected clients
+      responses:
+        "200": {description: Connected clients}
+  /v1/owncast/users/{userId}:
+    get:
+      summary: Read one Owncast chat user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: {type: string}
+      responses:
+        "200": {description: User details}
+  /v1/owncast/webhook-events:
+    get:
+      summary: Read verified Owncast webhook events received by middleware
+      parameters:
+        - in: query
+          name: limit
+          schema: {type: integer, minimum: 1, maximum: 100, default: 25}
+      responses:
+        "200": {description: Verified events}
+  /v1/owncast/stream-title:
+    post:
+      summary: Update stream title
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: true}
+      responses:
+        "200": {description: Updated}
+  /v1/owncast/chat/system:
+    post:
+      summary: Send system chat message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: true}
+      responses:
+        "200": {description: Sent}
+  /v1/owncast/chat/send:
+    post:
+      summary: Send chat message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: true}
+      responses:
+        "200": {description: Sent}
+  /v1/owncast/chat/action:
+    post:
+      summary: Send chat action
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: true}
+      responses:
+        "200": {description: Sent}
+  /v1/owncast/chat/message-visibility:
+    post:
+      summary: Change message visibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: true}
+      responses:
+        "200": {description: Updated}
+  /v1/owncast/chat/system/client/{clientId}:
+    post:
+      summary: Send system message to one Owncast client
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema: {type: integer}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: true}
+      responses:
+        "200": {description: Sent}
+components:
+  securitySchemes:
+    CodestraVideoToken:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque-local-token
